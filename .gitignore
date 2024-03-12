@@ -55,3 +55,6 @@ build
 *.db
 lettura.toml
 dev-dist
+
+server/static
+web-dist

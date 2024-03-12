@@ -1,0 +1,23 @@
+[mapper]
+type = "postgres"
+user = "lettura"
+pass = "lettura"
+dbname = "lettura"
+host = "127.0.0.1"
+port = 5432
+
+[server]
+port = 3011
+
+[common]
+asset_base_dir = "/home/chin/files-ext/lettura/assets"
+
+
+[backup]
+dir = "/home/chin/files-ext/lettura/backup"
+interval = 600
+
+
+[proxy]
+ip = "127.0.0.1"
+port = 7890
