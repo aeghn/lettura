@@ -1,6 +1,6 @@
 
 <p align="center">
-  <img src="./src/logo.svg" width="360px"/>
+  <img src="./frontend/logo.svg" width="360px"/>
 </p>
 <h1 align="center">Lettura</h1>
 
