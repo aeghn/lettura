@@ -8,4 +8,5 @@ pnpm run build
 cd $P
 cd server
 
-cargo run -- --config ../data/config.example.toml
+# cargo run -- --config ../data/config.example.toml
+cargo install --path .

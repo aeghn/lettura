@@ -2,9 +2,7 @@ use crate::model::db::{Article, Feed, FeedTypeMark};
 use chrono::{DateTime, Local};
 use feed_rs::model::Entry;
 
-pub fn map_entry_to_article(entry: &Entry, feed_id: &str, feed_title: &str) -> Article {
-    let id = uuid::Uuid::new_v4().hyphenated().to_string();
-
+pub fn map_entry_to_article(entry: &Entry, feed: &Feed) -> Article {
     let title = match &entry.title {
         Some(link) => link.content.to_string(),
         None => String::from(""),
@@ -45,8 +43,8 @@ pub fn map_entry_to_article(entry: &Entry, feed_id: &str, feed_title: &str) -> A
         Some(entry.id.clone()),
         title,
         link,
-        feed_id.to_owned(),
-        feed_title.to_string(),
+        feed.id.clone(),
+        feed.title.clone(),
         description,
         author,
         pub_date,
@@ -56,6 +54,7 @@ pub fn map_entry_to_article(entry: &Entry, feed_id: &str, feed_title: &str) -> A
         Local::now().fixed_offset(),
         false,
         false,
+        &feed.feed_url,
     )
 }
 

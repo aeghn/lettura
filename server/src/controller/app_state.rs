@@ -164,7 +164,7 @@ impl WebAppState {
                     let articles: Vec<Article> = rfeed
                         .entries
                         .iter()
-                        .map(|e| map_entry_to_article(e, &feed.id, &feed.title))
+                        .map(|e| map_entry_to_article(e, &feed))
                         .collect();
 
                     if feed_log.last_pub_date.is_none() {
@@ -220,7 +220,7 @@ impl WebAppState {
         let articles = res
             .entries
             .iter()
-            .map(|e| map_entry_to_article(e, &feed.id, &feed.title))
+            .map(|e| map_entry_to_article(e, &feed))
             .collect();
 
         info!("add feed, {:?}", feed);

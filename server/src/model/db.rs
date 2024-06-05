@@ -39,10 +39,11 @@ impl Article {
         update_time: DateTime<FixedOffset>,
         is_read: bool,
         is_starred: bool,
+        feed_url: &str,
     ) -> Self {
         let id = format!(
             "{:x}",
-            md5::compute(format!("{:?} {} {}", pub_id, link, title))
+            md5::compute(format!("{:?} {} {}", pub_id, feed_url, title))
         );
         Article {
             id,
