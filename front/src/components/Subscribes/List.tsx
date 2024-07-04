@@ -173,23 +173,25 @@ export const List = () => {
       const isActive = store?.feed?.uuid === feed.uuid;
 
       return (
-        <SubscribeItem
-          key={feed.uuid}
-          index={index}
-          uuid={feed.uuid}
-          text={feed.title}
-          level={level}
-          feed={{ ...feed }}
-          isActive={isActive}
-          isExpanded={feed.is_expanded}
-          toggleFolder={toggleFolder}
-          onDrop={onSubscribeItemDrop}
-        >
-          {feed.children &&
-            feed.children.map((child, idx) => {
-              return renderFeed(child as TreeItem, idx, 2);
-            })}
-        </SubscribeItem>
+        (feed.unread > 0 || isActive) && (
+          <SubscribeItem
+            key={feed.uuid}
+            index={index}
+            uuid={feed.uuid}
+            text={feed.title}
+            level={level}
+            feed={{ ...feed }}
+            isActive={isActive}
+            isExpanded={feed.is_expanded}
+            toggleFolder={toggleFolder}
+            onDrop={onSubscribeItemDrop}
+          >
+            {feed.children &&
+              feed.children.map((child, idx) => {
+                return renderFeed(child as TreeItem, idx, 2);
+              })}
+          </SubscribeItem>
+        )
       );
     };
 

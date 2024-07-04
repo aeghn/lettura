@@ -9,6 +9,7 @@ use axum::{
     Json, Router,
 };
 use reqwest::header;
+use tracing::info;
 
 use crate::{
     controller::{json_or, WebAppState},
@@ -108,6 +109,7 @@ pub async fn handle_get_image(
     app_state: State<WebAppState>,
     url: Path<String>,
 ) -> impl IntoResponse {
+    info!("begin to get image: {}", &url.0);
     let r = app_state
         .fetch_attachment_and_cache(&ForwardUrlReq { url: url.0 })
         .await;

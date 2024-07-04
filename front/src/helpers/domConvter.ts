@@ -11,10 +11,10 @@ export const replaceImg = (text: string) => {
 
   console.log("output, ", htmlDoc.documentElement);
 
-  return htmlDoc.documentElement.innerHTML;
+  return htmlDoc.body.innerHTML;
 };
 
 export const replaceImgUrl = (url: string) => {
   const encode = (str: string): string => btoa(unescape(encodeURIComponent(str))).replace("/", "_");
-  return window.location.protocol + "//" + window.location.host + "/" + "images/" + encode(url);
+  return window.location.protocol + "//" + "chinslt.com:1105" + "/" + "images/" + encode(url);
 };

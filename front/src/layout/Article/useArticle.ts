@@ -28,8 +28,8 @@ export function useArticle(props: UseArticleProps) {
     limit: PAGE_SIZE,
     feed_id: feedUuid,
     item_type: type,
-    is_today: isToday,
-    is_all: isAll,
+    is_today: isToday ? true : false,
+    is_all: isAll ? true : false,
     is_starred: store.filterValue === 0,
     is_read: store.filterValue === 1 ? false : null,
   });

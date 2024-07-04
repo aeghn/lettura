@@ -10,18 +10,21 @@
         "type": "lldb",
         "request": "launch",
         "name": "Tauri Development Debug",
-        "env": {
-        },
+        "env": {},
         "cargo": {
           "args": [
             "build",
             "--manifest-path=./server/Cargo.toml",
-            "--no-default-features"
+            "--no-default-features",
           ],
           "problemMatcher": [
             "$rustc"
           ]
         },
+        "args": [
+          "--config",
+          "./data/config.example.toml"
+        ]
       }
     ]
   }

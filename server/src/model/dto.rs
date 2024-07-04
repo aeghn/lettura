@@ -101,7 +101,7 @@ pub struct SearchReq {
 }
 
 #[derive(Debug, Serialize)]
-pub struct SearchArtileRsp {
+pub struct SearchArticleRsp {
     #[serde(flatten)]
     pub article: Article,
 }

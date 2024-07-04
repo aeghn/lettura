@@ -1,12 +1,13 @@
-use std::io::Bytes;
-
-use chrono::{DateTime, FixedOffset, Local, Utc};
+use chrono::{DateTime, FixedOffset, Local};
 use serde::{Deserialize, Serialize};
 use strum::{AsRefStr, EnumString};
+
+use crate::mapper::feed_rs::ring_id;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Article {
     id: String,
+    pub ring_id: String,
     pub pub_id: Option<String>,
     pub title: String,
     pub link: String,
@@ -41,12 +42,11 @@ impl Article {
         is_starred: bool,
         feed_url: &str,
     ) -> Self {
-        let id = format!(
-            "{:x}",
-            md5::compute(format!("{:?} {} {}", pub_id, feed_url, title))
-        );
+        let id = uuid::Uuid::new_v4().hyphenated().to_string();
+        let ring_id = ring_id(pub_id.as_ref(), feed_url);
         Article {
             id,
+            ring_id,
             pub_id,
             title,
             link,
@@ -66,6 +66,7 @@ impl Article {
 
     pub fn new_from_db(
         id: String,
+        ring_id: String,
         pub_id: Option<String>,
         title: String,
         link: String,
@@ -83,6 +84,7 @@ impl Article {
     ) -> Self {
         Article {
             id,
+            ring_id,
             pub_id,
             title,
             link,
@@ -172,4 +174,11 @@ pub struct WebCache {
     pub id: String,
     pub url: String,
     pub content_type: String,
+}
+
+#[derive(Serialize)]
+pub struct BlockedLink {
+    pub url: String,
+    pub insert_time: DateTime<FixedOffset>,
+    pub update_time: DateTime<FixedOffset>,
 }

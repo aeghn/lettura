@@ -1,7 +1,7 @@
 use arguments::Arguments;
+use chin_tools::wrapper::anyhow::AResult;
 use clap::Parser;
 use config::Config;
-use model::alias::RResult;
 use tracing::{info, Level};
 
 pub mod arguments;
@@ -12,7 +12,7 @@ pub mod model;
 pub mod tool;
 
 #[tokio::main]
-async fn main() -> RResult<()> {
+async fn main() -> AResult<()> {
     tracing_subscriber::fmt()
         .with_max_level(Level::INFO)
         .with_thread_ids(true)

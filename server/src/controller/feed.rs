@@ -201,7 +201,7 @@ pub async fn fetch_feed(
     let channel_uuid = Uuid::new_v4().hyphenated().to_string();
     let res = app_state.page_scraper.parse_feed(&url).await;
 
-    json_or!(res.map(|feed| { map_feed_to_feed(&channel_uuid, None, &0, url.as_str(), &feed,) }))
+    json_or!(res.map(|feed| { map_feed_to_feed(&channel_uuid, &0, url.as_str(), &feed,) }))
 }
 
 pub async fn get_collection_metas(app_state: State<WebAppState>) -> impl IntoResponse {

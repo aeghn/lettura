@@ -5,16 +5,18 @@ use std::time::Duration;
 use anyhow::anyhow;
 use axum::http::HeaderValue;
 use bytes::Bytes;
+use chin_tools::wrapper::anyhow::AResult;
 use feed_rs::parser;
-use reqwest::{self, header, Client, Response};
+use reqwest::{self, header, Response};
 use scraper::{self};
 use serde::Serialize;
 use tracing::{error, info};
 
 use crate::log_and_bail;
-use crate::model::alias::RResult;
 use crate::model::ProxyConfig;
 use crate::tool::request::create_client;
+
+use super::db::Mapper;
 
 #[derive(Debug, Default, Serialize)]
 pub struct PageScraperResult {
@@ -31,17 +33,33 @@ pub struct PageScraperResult {
 pub struct PageScraper {
     proxy: Option<ProxyConfig>,
     proxy_urls: Arc<RwLock<HashSet<String>>>,
+    db_mapper: Arc<dyn Mapper>,
 }
 
 impl PageScraper {
-    pub fn new(proxy: Option<&ProxyConfig>) -> Self {
+    pub fn new(proxy: Option<&ProxyConfig>, mapper: &Arc<dyn Mapper>) -> Self {
         Self {
             proxy: proxy.map(|e| e.clone()).clone(),
             proxy_urls: Arc::new(RwLock::new(HashSet::new())),
+            db_mapper: mapper.clone(),
         }
     }
 
-    pub async fn request(&self, url: &str) -> RResult<Response> {
+    pub async fn init(&self) -> AResult<()> {
+        let urls = self.db_mapper.fetch_blocked_domains().await?;
+        let _ = self.proxy_urls.write().map(|mut lock| {
+            let urls = urls.into_iter().map(|e| e.url);
+            lock.extend(urls)
+        });
+
+/*         if let Err(err) = self.db_mapper.fix_db().await {
+            error!("unable to fix db: {}", err);
+        } */
+
+        Ok(())
+    }
+
+    pub async fn request(&self, url: &str) -> AResult<Response> {
         let parsed = url::Url::parse(url)?;
         let host = parsed.host_str();
         let proxy = if host.map_or(false, |url| {
@@ -75,6 +93,7 @@ impl PageScraper {
                     if let Ok(mut lock) = self.proxy_urls.write() {
                         lock.insert(host.to_string());
                     }
+                    self.db_mapper.add_blocked_domain(host).await?;
                 };
                 return Ok(w);
             }
@@ -83,7 +102,7 @@ impl PageScraper {
         anyhow::bail!("unable to get response from {}", url)
     }
 
-    pub async fn fetch_page(&self, url: &str) -> RResult<String> {
+    pub async fn fetch_page(&self, url: &str) -> AResult<String> {
         let response = self.request(url).await?;
 
         match response.status() {
@@ -96,7 +115,7 @@ impl PageScraper {
         }
     }
 
-    pub async fn get_first_image_or_og_image(&self, url: &str) -> RResult<String> {
+    pub async fn get_first_image_or_og_image(&self, url: &str) -> AResult<String> {
         let res = self.request(url).await?;
         let body = res.text().await?;
         let document = scraper::Html::parse_document(&body);
@@ -119,13 +138,13 @@ impl PageScraper {
         log_and_bail!("unable to get_first_image_or_og_image")
     }
 
-    pub async fn parse_feed(&self, url: &str) -> RResult<feed_rs::model::Feed> {
+    pub async fn parse_feed(&self, url: &str) -> AResult<feed_rs::model::Feed> {
         info!("begin to parse feed: {}", url);
         match self.request(url).await {
             Ok(response) => match response.status() {
                 reqwest::StatusCode::OK => match response.text().await {
                     Ok(content) => {
-                        let c: RResult<feed_rs::model::Feed> =
+                        let c: AResult<feed_rs::model::Feed> =
                             match parser::parse(content.as_bytes()) {
                                 Ok(feed) => Ok(feed),
                                 Err(error) => Err(anyhow::anyhow!("unable to parse: {:?}", error)),
@@ -151,7 +170,7 @@ impl PageScraper {
     pub async fn get_attachment(
         &self,
         url: &str,
-    ) -> RResult<(
+    ) -> AResult<(
         impl futures_core::Stream<Item = reqwest::Result<Bytes>>,
         String,
     )> {

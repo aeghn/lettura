@@ -58,13 +58,14 @@ pub fn map_entry_to_article(entry: &Entry, feed: &Feed) -> Article {
     )
 }
 
-pub fn map_feed_to_feed(
-    id: &str,
-    parent_id: Option<String>,
-    sort: &i32,
-    url: &str,
-    res: &feed_rs::model::Feed,
-) -> Feed {
+pub fn ring_id(pub_id: Option<&String>, feed_url: &str) -> String {
+    format!(
+        "{:x}",
+        md5::compute(format!("{} {}", pub_id.map_or("", |e| e), feed_url))
+    )
+}
+
+pub fn map_feed_to_feed(id: &str, sort: &i32, url: &str, res: &feed_rs::model::Feed) -> Feed {
     let title = match &res.title {
         Some(link) => link.content.to_string(),
         None => String::from(""),

@@ -1,4 +1,5 @@
 use scraper::{Html, Selector};
+use tracing::info;
 
 use crate::model::db::Article;
 
@@ -31,4 +32,23 @@ pub fn replace_image(html: &str) -> String {
 
 pub fn replace_image_article(e: Article) -> Article {
     e
+}
+
+pub fn get_text_from_xml(s: &str) -> String {
+    let frag = scraper::Html::parse_fragment(s);
+    let mut result = String::new();
+    for node in frag.tree {
+        if let scraper::node::Node::Text(text) = node {
+            result.push_str(text.text.trim());
+        }
+    }
+
+    result
+}
+
+pub fn contains_only_text(old: &str, new: &str) -> bool {
+    let old = get_text_from_xml(old);
+    let new = get_text_from_xml(new);
+
+    return old.contains(new.as_str());
 }

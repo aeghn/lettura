@@ -31,7 +31,7 @@ use tower_http::{
     set_header::SetResponseHeaderLayer,
     trace::{self, TraceLayer},
 };
-use tracing::{info, Level};
+use tracing::{error, info, Level};
 
 macro_rules! json_or {
     ($result:expr) => {
@@ -63,23 +63,30 @@ pub struct WebAppState {
 }
 
 pub async fn serve(config: Config) {
+    let pool = config.db_config.clone().into().unwrap();
+    let ps = PageScraper::new(
+        match config.proxy.clone() {
+            Some(p) => Some(ProxyConfig {
+                ip: p.ip.clone(),
+                port: p.port.clone(),
+                username: None,
+                password: None,
+            }),
+            None => None,
+        }
+        .as_ref(),
+        &pool,
+    );
+    if let Err(err) = ps.init().await {
+        error!("unable to init: {}", err);
+    }
+
     let state = WebAppState {
-        page_scraper: PageScraper::new(
-            match config.proxy.clone() {
-                Some(p) => Some(ProxyConfig {
-                    ip: p.ip.clone(),
-                    port: p.port.clone(),
-                    username: None,
-                    password: None,
-                }),
-                None => None,
-            }
-            .as_ref(),
-        ),
-        pool: config.db_config.clone().into().unwrap(),
+        page_scraper: ps,
+        pool,
         config,
     };
-    
+
     state.sync_feeds_at_interval();
 
     let cors_layer = CorsLayer::new()

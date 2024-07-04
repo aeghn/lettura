@@ -22,21 +22,6 @@ impl Default for CustomizeStyle {
     }
 }
 
-macro_rules! generate_set_property {
-    ($config:ident, $method:ident, $field:ident, $field_type:ty) => {
-        pub fn $method(mut $config, value: $field_type) -> Self {
-            $config.$field = value;
-            $config
-        }
-    };
-    ($config:ident, $method:ident, $field:ident, Option<$field_type:ty>) => {
-        pub fn $method(mut $config, value: Option<$field_type>) -> Self {
-            $config.$field = value;
-            $config
-        }
-    };
-}
-
 #[derive(Debug, Serialize, Deserialize)]
 pub struct UserConfig {
     pub threads: i32,

@@ -1,15 +1,14 @@
 use std::path::PathBuf;
 
 use axum::body::Body;
+use chin_tools::wrapper::anyhow::AResult;
 use futures::TryStreamExt;
 use tokio::time;
-use toml::value::Time;
 use uuid::Uuid;
 
 use crate::{
     mapper::feed_rs::{map_entry_to_article, map_feed_to_feed},
     model::{
-        alias::RResult,
         db::{Feed, FeedTypeMark, WebCache},
         dto::{FeedAddRsp, FeedSyncResult, ForwardUrlReq, MarkAllReadReq},
     },
@@ -27,8 +26,9 @@ use crate::{
 };
 
 impl WebAppState {
-    pub async fn fetch_article_and_cache(&self, req: &ForwardUrlReq) -> RResult<String> {
+    pub async fn fetch_article_and_cache(&self, req: &ForwardUrlReq) -> AResult<String> {
         let url = req.url.as_str();
+        info!("get full content: {}", url);
         let art = self.pool.get_article_with_url(url).await?;
 
         if art.cached_content.is_some() && art.cached_content.as_ref().unwrap().len() > 0 {
@@ -44,7 +44,7 @@ impl WebAppState {
     pub async fn fetch_attachment_and_cache(
         &self,
         req: &ForwardUrlReq,
-    ) -> RResult<(WebCache, Body)> {
+    ) -> AResult<(WebCache, Body)> {
         let url = req.url.as_str().replace("_", "/");
         let url = String::from_utf8(base64::decode(url)?)?;
         let art = self.pool.get_web_cache(url.as_str()).await;
@@ -142,7 +142,7 @@ impl WebAppState {
         });
     }
 
-    pub async fn sync_feeds(&self, id: Option<&str>) -> RResult<Vec<FeedSyncResult>> {
+    pub async fn sync_feeds(&self, id: Option<&str>) -> AResult<Vec<FeedSyncResult>> {
         let mut result = vec![];
         let res = match id {
             Some(id) => self.pool.get_sub_true_feeds(&id).await?,
@@ -210,13 +210,13 @@ impl WebAppState {
         Ok(result)
     }
 
-    pub async fn add_feed(&self, req: FeedAddReq) -> RResult<FeedAddRsp> {
+    pub async fn add_feed(&self, req: FeedAddReq) -> AResult<FeedAddRsp> {
         let url = req.url;
 
         let res = self.page_scraper.parse_feed(&url).await?;
 
         let channel_uuid = Uuid::new_v4().hyphenated().to_string();
-        let feed = map_feed_to_feed(&channel_uuid, None, &0, &url, &res);
+        let feed = map_feed_to_feed(&channel_uuid, &0, &url, &res);
         let articles = res
             .entries
             .iter()
@@ -234,13 +234,13 @@ impl WebAppState {
         })
     }
 
-    pub async fn mark_as_read(&self, req: &MarkAllReadReq) -> RResult<()> {
+    pub async fn mark_as_read(&self, req: &MarkAllReadReq) -> AResult<()> {
         self.pool.mark_as_read(&req).await?;
 
         Ok(())
     }
 
-    pub(crate) async fn add_folder(&self, req: &String) -> RResult<Feed> {
+    pub(crate) async fn add_folder(&self, req: &String) -> AResult<Feed> {
         let channel_uuid = Uuid::new_v4().hyphenated().to_string();
         let folder_url = format!("folder-{}", req);
         let feed = Feed {

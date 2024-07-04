@@ -6,7 +6,7 @@ use axum::{
 };
 
 use crate::{
-    model::dto::{SearchArtileRsp, SearchReq},
+    model::dto::{SearchArticleRsp, SearchReq},
     tool::htmlconverter::replace_image_article,
 };
 
@@ -16,10 +16,10 @@ pub async fn handle_search(
     app_state: State<WebAppState>,
     search: Query<SearchReq>,
 ) -> impl IntoResponse {
-    let result: Result<Vec<SearchArtileRsp>, anyhow::Error> =
+    let result: Result<Vec<SearchArticleRsp>, anyhow::Error> =
         app_state.pool.global_search(search.0).await.map(|e| {
             e.into_iter()
-                .map(|a| SearchArtileRsp {
+                .map(|a| SearchArticleRsp {
                     article: replace_image_article(a.article),
                 })
                 .collect()

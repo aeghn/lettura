@@ -1,6 +1,5 @@
 use serde::{Deserialize, Serialize};
 
-pub mod alias;
 pub mod constant;
 pub mod custom;
 pub mod db;

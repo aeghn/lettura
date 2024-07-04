@@ -22,13 +22,13 @@ chrono = { version = "*", features = ["serde"] }
 
 tokio-postgres = { version = "0.7", features = ["with-chrono-0_4"] }
 postgres-types = { version = "0.2" }
-deadpool-postgres = { version = "0.13.1" }
+deadpool-postgres = { version = "0.14.0" }
 
 uuid = { version = "1.2.1", features = ["v4", "fast-rng", "macro-diagnostics"] }
 toml = "0.8.12"
 scraper = "0.19.0"
 regex = "1"
-feed-rs = "1.3.0"
+feed-rs = "2.0.0"
 url = { version = "2.5.0", features = ["serde"] }
 base64 = "0.22.0"
 once_cell = "1.19.0"
@@ -57,7 +57,7 @@ bytes = { version = "1", features = ["serde"] }
 md5 = "0.7.0"
 mime_guess = "2.0.4"
 
-chin-tools = { path = "/home/chin/Projects/chin-tools" }
+chin-tools = { path = "/home/chin/Projects/chin-tools", features = ["ftokio"] }
 tokio-util = "0.7.11"
 futures = "0.3.30"
 futures-core = "0.3.30"
