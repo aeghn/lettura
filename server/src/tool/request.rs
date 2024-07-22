@@ -12,6 +12,7 @@ pub fn create_client(local_proxy: Option<&ProxyConfig>) -> reqwest::Client {
 
         return client_builder
             .proxy(reqwest::Proxy::all(scheme).unwrap())
+            .user_agent("curl")
             .build()
             .unwrap();
     }
