@@ -23,6 +23,7 @@ pub struct ArticleFilterReq {
     pub is_today: Option<bool>,
     pub is_starred: Option<bool>,
     pub is_read: Option<bool>,
+    pub keyword: Option<String>,
     pub cursor: Option<i32>,
     pub limit: Option<i32>,
 }

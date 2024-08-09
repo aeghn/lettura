@@ -11,10 +11,11 @@ const PAGE_SIZE = 20;
 export interface UseArticleProps {
   feedUuid?: string;
   type?: string;
+  keyword?: string;
 }
 
 export function useArticle(props: UseArticleProps) {
-  const { feedUuid, type } = props;
+  const { feedUuid, type, keyword } = props;
   const isToday = useMatch(RouteConfig.LOCAL_TODAY);
   const isAll = useMatch(RouteConfig.LOCAL_ALL);
   const isStarred = useMatch(RouteConfig.LOCAL_STARRED);
@@ -32,6 +33,7 @@ export function useArticle(props: UseArticleProps) {
     is_all: isAll ? true : false,
     is_starred: store.filterValue === 0,
     is_read: store.filterValue === 1 ? false : null,
+    keyword: keyword,
   });
 
   console.log("%c Line:29 🍖 query", "color:#ea7e5c", query);

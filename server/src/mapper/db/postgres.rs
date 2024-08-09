@@ -12,6 +12,7 @@ use deadpool_postgres::{
 };
 use serde::Deserialize;
 use tracing::{error, info, warn};
+use tracing_subscriber::filter;
 
 use crate::{
     mapper::feed_rs::ring_id,
@@ -347,6 +348,22 @@ impl ArticleMapper for PostgresMapper {
             cond_with!(sql, with_cond);
 
             sql.push_str(" is_starred = true ");
+        }
+
+        if let Some(query) = filter.keyword.as_ref() {
+            if query.len() > 0 {
+                cond_with!(sql, with_cond);
+
+                let query = query.replace("'", "");
+
+                sql.push_str(
+                    format!(
+                        "( a.content ilike '%{}%' or a.title ilike '%{}%' or a.description ilike '%{}%' )",
+                        query, query, query
+                    )
+                    .as_str(),
+                );
+            }
         }
 
         cond_with!(sql, with_cond);

@@ -75,6 +75,7 @@ impl PageScraper {
         match create_client(proxy)
             .get(url)
             .timeout(Duration::from_secs(35))
+            
             .send()
             .await
         {
@@ -161,9 +162,9 @@ impl PageScraper {
                     url
                 )),
 
-                other => Err(anyhow::anyhow!("unable to parse: {}", other)),
+                other => Err(anyhow::anyhow!("faill code: {}", other)),
             },
-            Err(err) => Err(anyhow::anyhow!("unable to parse: {:?}", err)),
+            Err(err) => Err(anyhow::anyhow!("not valid response: {:?}", err)),
         }
     }
 

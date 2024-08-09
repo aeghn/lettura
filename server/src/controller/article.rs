@@ -139,18 +139,9 @@ pub async fn handle_get_image(
 
 pub async fn handle_articles(
     app_state: State<WebAppState>,
-    query: Query<ArticleFilterReq>,
+    Query(query): Query<ArticleFilterReq>,
 ) -> impl IntoResponse {
-    let filter = ArticleFilterReq {
-        feed_id: query.feed_id.clone(),
-        is_today: query.is_today.clone(),
-        is_starred: query.is_starred.clone(),
-        is_read: query.is_read.clone(),
-        cursor: query.cursor.clone(),
-        limit: query.limit.clone(),
-    };
-
-    let res = app_state.pool.get_articles(&filter).await.map(|v| {
+    let res = app_state.pool.get_articles(&query).await.map(|v| {
         let mut hm = HashMap::new();
         hm.insert("list", v);
         hm

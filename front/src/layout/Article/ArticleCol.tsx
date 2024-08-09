@@ -1,45 +1,20 @@
-import React, {
-  ForwardedRef,
-  useCallback,
-  useEffect,
-  useImperativeHandle,
-  useLayoutEffect,
-  useRef,
-  useState,
-} from "react";
+import React, { useEffect, useImperativeHandle, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import { ArticleList } from "@/components/ArticleList";
 import { useBearStore } from "@/stores";
 import * as dataAgent from "@/helpers/dataAgent";
 
-import {
-  Filter,
-  CheckCheck,
-  RefreshCw,
-  LucidePiano,
-  LucideAArrowDown,
-  LucideCircle,
-  LucideBookDown,
-  LucideBook,
-} from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { RefreshCw, Search } from "lucide-react";
 
 import { Icon } from "@/components/Icon";
 import { TooltipBox } from "@/components/TooltipBox";
 import { useArticle } from "./useArticle";
 import { loadFeed } from "@/hooks/useLoadFeed";
-import { ArticleReadStatus } from "@/typing";
 import { useHotkeys } from "react-hotkeys-hook";
-import { throttle } from "lodash";
+import { debounce, throttle } from "lodash";
 import { ArticleResItem, FeedLog } from "@/db";
 import { formatDistanceToNow, parseISO } from "date-fns";
+import { Input } from "@/components/ui/input";
 
 export interface ArticleColRefObject {
   goNext: () => void;
@@ -52,6 +27,7 @@ export const ArticleCol = React.memo(
     // @ts-ignore
     const params: { name: string } = useParams();
     const [isSyncing, setIsSyncing] = useState(false);
+    const [keyword, setKeyword] = useState<undefined | string>(undefined);
     const listRef = useRef<HTMLDivElement>(null);
 
     const store = useBearStore((state) => ({
@@ -79,6 +55,7 @@ export const ArticleCol = React.memo(
       useArticle({
         feedUuid,
         type,
+        keyword,
       });
 
     const handleRefresh = () => {
@@ -98,19 +75,17 @@ export const ArticleCol = React.memo(
       }
     };
 
-    const markAllRead = () => {
-      return store.markArticleListAsRead(isToday, isAll).then(() => {
-        mutate();
-      });
-    };
-
-    const changeFilter = (id: any) => {
-      if (store.filterList.some((_) => _.id === parseInt(id, 10))) {
-        store.setFilter({
-          ...store.filterList.filter((_) => _.id === parseInt(id, 10))[0],
-        });
+    const toggleSearch = () => {
+      if (keyword !== undefined) {
+        setKeyword(undefined);
+      } else {
+        setKeyword("");
       }
     };
+
+    const updateKeyword = debounce((keyword: string) => {
+      setKeyword(keyword);
+    }, 300);
 
     function calculateItemPosition(direction: "up" | "down", article: ArticleResItem | null) {
       if (!article?.id) {
@@ -186,9 +161,6 @@ export const ArticleCol = React.memo(
         nextItem = articles[0];
       }
 
-      console.log("%c Line:162 🥟 articles", "color:#4fff4B", articles);
-      console.log("%c Line:162 🍔 nextItem", "color:#4fff4B", nextItem);
-
       store.updateArticleStatus({ ...nextItem }, true);
 
       nextItem.is_read = true;
@@ -230,7 +202,7 @@ export const ArticleCol = React.memo(
 
     return (
       <div className="w-4/12 shrink-0 basis-[var(--app-article-width)] border-r flex flex-[1_1_0%] flex-col h-full">
-        <div className="h-[var(--app-toolbar-height)] grid grid-cols-[auto_1fr] items-center justify-between border-b">
+        <div className="h-auto grid grid-cols-[auto_1fr] items-center justify-between border-b py-2">
           <div
             className="
             flex
@@ -240,7 +212,6 @@ export const ArticleCol = React.memo(
             font-bold
             w-full
             text-ellipsis
-            overflow-hidden
             whitespace-nowrap
             text-article-headline
           "
@@ -250,8 +221,10 @@ export const ArticleCol = React.memo(
           <div className={"flex items-center justify-end px-2 space-x-0.5"}>
             {feedLog ? (
               <div className="text-xs px-1 mx-2">
-                <div className="flex flex-row">Pull: {formatDistanceToNow(parseISO(feedLog.update_time))}</div>
-                <div className="flex flex-row">
+                <div className="flex flex-row whitespace-nowrap">
+                  Pull: {formatDistanceToNow(parseISO(feedLog.update_time))}
+                </div>
+                <div className="flex flex-row whitespace-nowrap">
                   Pub: {feedLog.last_pub_date ? formatDistanceToNow(parseISO(feedLog.last_pub_date)) : null}
                 </div>
               </div>
@@ -261,13 +234,32 @@ export const ArticleCol = React.memo(
               <Icon onClick={handleRefresh}>
                 <RefreshCw
                   size={20}
-                  className={`${isSyncing ? "spinning" : "333"}`}
-                  color={feedLog?.healthy ? "#33aa33" : "#aa3333"}
+                  className={`${isSyncing ? "spinning" : undefined}`}
+                  color={feedLog?.healthy ? undefined : "#aa3333"}
+                />
+              </Icon>
+            </TooltipBox>
+            <TooltipBox content="Search">
+              <Icon onClick={toggleSearch}>
+                <Search
+                  size={20}
+                  className={`${isSyncing ? "spinning" : undefined}`}
+                  color={feedLog?.healthy ? undefined : "#aa3333"}
                 />
               </Icon>
             </TooltipBox>
           </div>
+          </div>
+        {keyword !== undefined && (
+          <div className="w-full p-1">
+            <input
+              type="string"
+              className="flex-1 text-sm font-normal w-full p-2"
+              placeholder={"search Something"}
+              onChange={(e: { target: { value: string } }) => updateKeyword(e.target.value)}
+            />
         </div>
+        )}
         <div className="relative flex-1 overflow-auto" ref={listRef}>
           <ArticleList
             articles={articles}
